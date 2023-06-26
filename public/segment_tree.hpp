@@ -53,7 +53,7 @@ namespace SegmentTree
     {
       ValidateBounds(l, r);
 
-      return Calculate(l, r, 0, 0, m_size);
+      return *Calculate(l, r, 0, 0, m_size);
     }
 
   private:
@@ -217,12 +217,7 @@ namespace SegmentTree
         _CombineCalcData(m_tree[2 * x + 1].m_calcOnSegmentData, m_tree[2 * x + 2].m_calcOnSegmentData);
     }
 
-    CalcData Calculate(size_t l, size_t r, size_t x, size_t lx, size_t rx)
-    {
-      return *_Calculate(l, r, x, lx, rx);
-    }
-
-    std::optional<CalcData> _Calculate(size_t l, size_t r, size_t x, size_t lx, size_t rx)
+    std::optional<CalcData> Calculate(size_t l, size_t r, size_t x, size_t lx, size_t rx)
     {
       Propagate(x, lx, rx);
 
@@ -233,8 +228,8 @@ namespace SegmentTree
         return m_tree[x].m_calcOnSegmentData;
 
       const size_t m = (lx + rx) / 2;
-      const auto lhsCalcData = _Calculate(l, r, 2 * x + 1, lx, m);
-      const auto rhsCalcData = _Calculate(l, r, 2 * x + 2, m, rx);
+      const auto lhsCalcData = Calculate(l, r, 2 * x + 1, lx, m);
+      const auto rhsCalcData = Calculate(l, r, 2 * x + 2, m, rx);
 
       return _CombineCalcData(lhsCalcData, rhsCalcData);
     }
