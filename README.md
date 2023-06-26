@@ -1,5 +1,7 @@
 # Algorithms and Data Structures
 
+* [template for new algo/ds](info/template.md)
+
 * Algorithms
     - **Graphs**
         * [x] [Strongly connected components search](graphs/strongly-connected-components.md)
@@ -12,8 +14,8 @@
 * Data Structures
 
 * Unsorted
-      [ ] посчитать кол-во взаимно простых чисел
-      [ ] дерево отрезков
+    - [ ] посчитать кол-во взаимно простых чисел
+    - [ ] дерево отрезков (segment tree)
     - [ ] LRU Cache
         [ ] Задачи:
             * 146. LRU Cache на Leetcode
