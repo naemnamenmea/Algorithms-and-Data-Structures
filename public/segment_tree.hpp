@@ -1,6 +1,5 @@
 #pragma once
 
-#include "math_constants.hpp"
 #include <vector>
 #include <stdexcept>
 #include <tuple>
@@ -36,12 +35,12 @@ namespace SegmentTree
       Modify(i, i + 1, modifyOp);
     }
 
-    void Modify(size_t l, size_t r, ModifyOp modifyOp)
+    void Modify(size_t l, size_t r, const ModifyOp& modifyOp)
     {
       ValidateBounds(l, r);
 
       InternalNode updateNode;
-      updateNode.m_modifyOp = std::make_optional<ModifyOp>(std::move(modifyOp));
+      updateNode.m_modifyOp = std::optional(modifyOp);
       Modify(l, r, updateNode, 0, 0, m_size);
     }
 
@@ -76,7 +75,8 @@ namespace SegmentTree
       m_size = 1;
       while (m_size < n) m_size *= 2;
 
-      m_tree.assign(2 * m_size - 1, InternalNode{});
+      m_tree.assign(2 * m_size - 1, InternalNode{} /*init element (list node)*/);
+      //m_tree.resize(2 * m_size - 1);
     }
 
     //bool IsDummyNode(size_t nodeNum) const
@@ -97,10 +97,10 @@ namespace SegmentTree
       }
     }
 
-    static InternalNode BuildOneElement(const T& value)
+    static InternalNode BuildOneElement(const T& value) // construct list node
     {
       InternalNode res;
-      res.m_calcOnSegmentData = std::make_optional<CalcData>(CalcData(value));
+      res.m_calcOnSegmentData = std::make_optional<CalcData>(value);
       return res;
     }
 
@@ -193,6 +193,30 @@ namespace SegmentTree
         _CombineCalcData(m_tree[2 * x + 1].m_calcOnSegmentData, m_tree[2 * x + 2].m_calcOnSegmentData);
     }
 
+    void Set(int i, T value, int x, int lx, int rx)
+    {
+      Propagate(x, lx, rx);
+      
+      if (rx - lx == 1)
+      {
+        m_tree[x] = BuildOneElement(std::move(value));
+        return;
+      }
+
+      int m = (lx + rx) / 2;
+      if (i < m)
+      {
+        Set(i, std::move(value), 2 * x + 1, lx, m);
+      }
+      else
+      {
+        Set(i, std::move(value), 2 * x + 2, m, rx);
+      }
+
+      m_tree[x].m_calcOnSegmentData =
+        _CombineCalcData(m_tree[2 * x + 1].m_calcOnSegmentData, m_tree[2 * x + 2].m_calcOnSegmentData);
+    }
+
     CalcData Calculate(size_t l, size_t r, size_t x, size_t lx, size_t rx)
     {
       return *_Calculate(l, r, x, lx, rx);
@@ -203,7 +227,7 @@ namespace SegmentTree
       Propagate(x, lx, rx);
 
       if (rx <= l || r <= lx)
-        return std::nullopt;
+        return std::nullopt; // neutral element (Zero element) or Node default constructor
 
       if (l <= lx && rx <= r)
         return m_tree[x].m_calcOnSegmentData;
@@ -217,7 +241,7 @@ namespace SegmentTree
 
     std::optional<CalcData> _CombineCalcData(const std::optional<CalcData>& lhsCalcData, const std::optional<CalcData>& rhsCalcData)
     {
-      return !lhsCalcData ? rhsCalcData : rhsCalcData ? std::make_optional<CalcData>(CombineCalcData(*lhsCalcData, *rhsCalcData)) : lhsCalcData;
+      return !lhsCalcData ? rhsCalcData : rhsCalcData ? std::optional(CombineCalcData(*lhsCalcData, *rhsCalcData)) : lhsCalcData;
     }
 
   private:
